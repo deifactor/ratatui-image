@@ -15,7 +15,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Terminal,
 };
-use ratatui_image::{picker::Picker, protocol::Protocol, Image, Resize};
+use ratatui_image::{picker::Picker, protocol::Protocol, FilterType, Image, Resize};
 struct App {
     image: Box<dyn Protocol>,
 }
@@ -46,7 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let image = picker.new_protocol(
         dyn_img,
         Rect::new(0, 0, SCREEN_SIZE.0 - 10, SCREEN_SIZE.1 - 4),
-        Resize::Fit,
+        Resize::Fit {
+            filter_type: FilterType::CatmullRom,
+        },
     )?;
     let mut app = App { image };
 

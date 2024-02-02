@@ -19,7 +19,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, StatefulWidget},
     Terminal,
 };
-use ratatui_image::{picker::Picker, protocol::StatefulProtocol, Resize};
+use ratatui_image::{picker::Picker, protocol::StatefulProtocol, FilterType, Resize};
 
 struct App {
     async_state: ThreadProtocol,
@@ -39,7 +39,9 @@ pub struct ThreadImage {
 impl ThreadImage {
     pub fn new() -> ThreadImage {
         ThreadImage {
-            resize: Resize::Fit,
+            resize: Resize::Fit {
+                filter_type: FilterType::CatmullRom,
+            },
         }
     }
 
@@ -178,7 +180,9 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         block.inner(area),
     );
 
-    let image = ThreadImage::new().resize(Resize::Fit);
+    let image = ThreadImage::new().resize(Resize::Fit {
+        filter_type: FilterType::CatmullRom,
+    });
     f.render_stateful_widget(image, block.inner(area), &mut app.async_state);
     f.render_widget(block, area);
 }

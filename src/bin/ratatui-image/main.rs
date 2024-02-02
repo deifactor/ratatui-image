@@ -20,7 +20,7 @@ use ratatui::{
 use ratatui_image::{
     picker::Picker,
     protocol::{ImageSource, StatefulProtocol},
-    Resize, StatefulImage,
+    FilterType, Resize, StatefulImage,
 };
 
 struct App {
@@ -131,7 +131,9 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     f.render_widget(block_top, chunks[0]);
 
     let block_bottom = Block::default().borders(Borders::ALL).title("image");
-    let image = StatefulImage::new(None).resize(Resize::Fit);
+    let image = StatefulImage::new(None).resize(Resize::Fit {
+        filter_type: FilterType::CatmullRom,
+    });
     f.render_stateful_widget(image, block_bottom.inner(chunks[1]), &mut app.image_state);
     f.render_widget(block_bottom, chunks[1]);
 }

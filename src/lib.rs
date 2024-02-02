@@ -112,10 +112,7 @@ use std::{
     error::Error,
 };
 
-use image::{
-    imageops::{self, FilterType},
-    DynamicImage, ImageBuffer, Rgb,
-};
+use image::{imageops, DynamicImage, ImageBuffer, Rgb};
 use protocol::{ImageSource, Protocol, StatefulProtocol};
 use ratatui::{
     buffer::Buffer,
@@ -125,6 +122,8 @@ use ratatui::{
 
 pub mod picker;
 pub mod protocol;
+
+pub use image::imageops::FilterType;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -194,7 +193,9 @@ pub struct StatefulImage {
 impl StatefulImage {
     pub fn new(background_color: Option<Rgb<u8>>) -> StatefulImage {
         StatefulImage {
-            resize: Resize::Fit,
+            resize: Resize::Fit {
+                filter_type: FilterType::CatmullRom,
+            },
             background_color,
         }
     }
@@ -222,7 +223,7 @@ pub enum Resize {
     ///
     /// If the width or height is smaller than the area, the image will be resized maintaining
     /// proportions.
-    Fit,
+    Fit { filter_type: FilterType },
     /// Crop to area.
     ///
     /// If the width or height is smaller than the area, the image will be cropped.
@@ -287,14 +288,14 @@ impl Resize {
 
     fn resize_image(&self, source: &ImageSource, width: u32, height: u32) -> DynamicImage {
         match self {
-            Self::Fit => source.image.resize(width, height, FilterType::Nearest),
+            Self::Fit { filter_type } => source.image.resize(width, height, *filter_type),
             Self::Crop => source.image.crop_imm(0, 0, width, height),
         }
     }
 
     fn needs_resize_rect(&self, desired: Rect, area: Rect) -> Rect {
         match self {
-            Self::Fit => {
+            Self::Fit { .. } => {
                 let (width, height) = resize_pixels(
                     desired.width,
                     desired.height,
@@ -361,7 +362,9 @@ mod tests {
 
     #[test]
     fn needs_resize_fit() {
-        let resize = Resize::Fit;
+        let resize = Resize::Fit {
+            filter_type: FilterType::CatmullRom,
+        };
 
         let to = resize.needs_resize(&s(100, 100), r(10, 10), r(10, 10), false);
         assert_eq!(None, to);
